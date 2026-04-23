@@ -1,9 +1,9 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+about: Make sure our app is bug-free!
+title: "[bugfix] Bug: (BUG_NAME)"
+labels: bug
+assignees: gameingame-eng
 
 ---
 

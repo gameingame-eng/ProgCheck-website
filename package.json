@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "dbpush": "supabase db push",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -12,7 +13,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.104.0",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "supabase": "^2.93.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

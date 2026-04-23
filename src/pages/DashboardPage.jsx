@@ -1,12 +1,26 @@
 function DashboardPage({
   assignedStudents,
   onLogout,
+  schedules,
   username,
 }) {
+  function formatTime(time) {
+    if (!time || typeof time !== 'string') {
+      return null
+    }
+
+    const [hourText = '00', minuteText = '00'] = time.split(':')
+    const hour = Number(hourText)
+    const minute = minuteText.padStart(2, '0')
+    const suffix = hour >= 12 ? 'PM' : 'AM'
+    const normalizedHour = hour % 12 || 12
+    return `${normalizedHour}:${minute} ${suffix}`
+  }
+
   const dashboardStats = [
     { value: String(assignedStudents.length), label: 'students assigned' },
     { value: assignedStudents.length > 0 ? 'Linked' : 'Open', label: 'roster status' },
-    { value: assignedStudents.length > 0 ? 'Ready' : 'Empty', label: 'teacher queue' },
+    { value: String(schedules.length), label: 'schedule entries' },
   ]
 
   return (
@@ -47,12 +61,12 @@ function DashboardPage({
               {assignedStudents.length > 0 ? assignedStudents.map((student) => (
                 <article className="dashboard-item warm" key={student.id}>
                   <h3>{student.username}</h3>
-                  <p>Assigned to you</p>
+                  <p>Scheduled with you</p>
                 </article>
               )) : (
                 <article className="dashboard-item plain">
                   <h3>No students yet</h3>
-                  <p>Pick from the unassigned list below to build your roster.</p>
+                  <p>Students will appear here once an admin builds schedules with your name on them.</p>
                 </article>
               )}
             </div>
@@ -60,15 +74,24 @@ function DashboardPage({
         </section>
 
         <section className="dashboard-panel dashboard-panel-compact">
-          <h2>Assignment flow</h2>
-          <p className="dashboard-text">
-            Student assignments are handled by admins. Your roster updates automatically when an admin links a student to you.
-          </p>
+          <h2>Schedule</h2>
           <div className="dashboard-list">
-            <article className="dashboard-item plain">
-              <h3>Admin-managed roster</h3>
-              <p>Reach out to an admin if a student needs to be reassigned or added to your list.</p>
-            </article>
+            {schedules.length > 0 ? schedules.map((schedule) => (
+              <article className="dashboard-item plain" key={schedule.id}>
+                <h3>{schedule.title}</h3>
+                <p>{schedule.studentName}</p>
+                <p>{schedule.scheduledFor ? `Date: ${schedule.scheduledFor}` : 'Date not set'}</p>
+                {schedule.startTime && schedule.endTime ? (
+                  <p>{`Time: ${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)}`}</p>
+                ) : null}
+                {schedule.details ? <p>{schedule.details}</p> : null}
+              </article>
+            )) : (
+              <article className="dashboard-item plain">
+                <h3>No schedule entries yet</h3>
+                <p>Admins can add students and meeting times to your schedule.</p>
+              </article>
+            )}
           </div>
         </section>
       </section>

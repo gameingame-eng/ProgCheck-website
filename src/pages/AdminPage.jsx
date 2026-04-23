@@ -1,20 +1,41 @@
+import { useState } from 'react'
+
 function AdminPage({
   assignmentError,
   assignmentFeedback,
   assignmentLoading,
-  assignments,
-  onAssignStudent,
   onCreateSchedule,
   onLogout,
   onScheduleFormChange,
   scheduleForm,
+  schedules,
   students,
   teachers,
   username,
 }) {
-  function getAssignedTeacherId(studentId) {
-    return assignments.find((assignment) => assignment.studentId === studentId)?.teacherId ?? ''
-  }
+  const [selectedStudentId, setSelectedStudentId] = useState('')
+  const [selectedTeacherId, setSelectedTeacherId] = useState('')
+
+  const progressTemplates = students.map((student) => ({
+    id: student.id,
+    username: student.username,
+    status: 'Not started',
+    summary: 'Progress reports will appear here once the reporting model is added.',
+  }))
+
+  const selectedStudent = students.find((student) => student.id === selectedStudentId) ?? null
+  const selectedTeacher = teachers.find((teacher) => teacher.id === selectedTeacherId) ?? null
+  const visibleSchedules = schedules.filter((schedule) => {
+    if (selectedStudentId) {
+      return schedule.studentId === selectedStudentId
+    }
+
+    if (selectedTeacherId) {
+      return schedule.teacherId === selectedTeacherId
+    }
+
+    return false
+  })
 
   return (
     <main className="dashboard-page">
@@ -33,36 +54,47 @@ function AdminPage({
 
         <section className="dashboard-grid" aria-label="Admin overview">
           <div className="dashboard-panel">
-            <h2>Assignments</h2>
+            <h2>All students</h2>
             <div className="dashboard-list">
               {students.map((student) => (
-                <article className="dashboard-item plain dashboard-admin-form" key={student.id}>
-                  <div>
-                    <h3>{student.username}</h3>
-                    <p>
-                      {assignments.find((assignment) => assignment.studentId === student.id)
-                        ? `Assigned to ${assignments.find((assignment) => assignment.studentId === student.id)?.teacherName}`
-                        : 'Not assigned yet'}
-                    </p>
-                  </div>
-                  <select
-                    className="dashboard-select"
-                    value={getAssignedTeacherId(student.id)}
-                    onChange={(event) => onAssignStudent(student.id, event.target.value)}
-                    disabled={assignmentLoading}
-                  >
-                    <option value="">Select teacher</option>
-                    {teachers.map((teacher) => (
-                      <option key={teacher.id} value={teacher.id}>
-                        {teacher.username}
-                      </option>
-                    ))}
-                  </select>
-                </article>
+                <button
+                  className={`dashboard-item plain dashboard-select-card${selectedStudentId === student.id ? ' dashboard-select-card-active' : ''}`}
+                  key={student.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedStudentId(student.id)
+                    setSelectedTeacherId('')
+                  }}
+                >
+                  <h3>{student.username}</h3>
+                  <p>Student account</p>
+                </button>
               ))}
             </div>
           </div>
 
+          <div className="dashboard-panel">
+            <h2>All teachers</h2>
+            <div className="dashboard-list">
+              {teachers.map((teacher) => (
+                <button
+                  className={`dashboard-item warm dashboard-select-card${selectedTeacherId === teacher.id ? ' dashboard-select-card-active' : ''}`}
+                  key={teacher.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedTeacherId(teacher.id)
+                    setSelectedStudentId('')
+                  }}
+                >
+                  <h3>{teacher.username}</h3>
+                  <p>Teacher account</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="dashboard-grid" aria-label="Admin tools">
           <div className="dashboard-panel">
             <h2>Create schedule</h2>
             <div className="dashboard-form">
@@ -79,6 +111,24 @@ function AdminPage({
                   {students.map((student) => (
                     <option key={student.id} value={student.id}>
                       {student.username}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="field">
+                <span>Teacher</span>
+                <select
+                  className="dashboard-select"
+                  value={scheduleForm.teacherId}
+                  onChange={(event) =>
+                    onScheduleFormChange((current) => ({ ...current, teacherId: event.target.value }))
+                  }
+                >
+                  <option value="">Select teacher</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.username}
                     </option>
                   ))}
                 </select>
@@ -154,6 +204,42 @@ function AdminPage({
                 Save schedule
               </button>
             </div>
+          </div>
+
+          <div className="dashboard-panel">
+            <h2>Progress reports</h2>
+            <div className="dashboard-list">
+              {progressTemplates.map((report) => (
+                <article className="dashboard-item plain" key={report.id}>
+                  <h3>{report.username}</h3>
+                  <p>{report.status}</p>
+                  <p>{report.summary}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="dashboard-panel dashboard-panel-compact">
+          <h2>Schedules</h2>
+          <div className="dashboard-list">
+            {selectedStudent || selectedTeacher ? visibleSchedules.length > 0 ? visibleSchedules.map((schedule) => (
+              <article className="dashboard-item cool" key={schedule.id}>
+                <h3>{schedule.title}</h3>
+                <p>{`${schedule.studentName} with ${schedule.teacherName}`}</p>
+                <p>{schedule.scheduledFor ? `Date: ${schedule.scheduledFor}` : 'Date not set'}</p>
+              </article>
+            )) : (
+              <article className="dashboard-item plain">
+                <h3>No schedules for this selection</h3>
+                <p>Pick a different student or teacher, or create a new schedule above.</p>
+              </article>
+            ) : (
+              <article className="dashboard-item plain">
+                <h3>Select a student or teacher</h3>
+                <p>Schedules stay hidden until you click into a specific student or teacher.</p>
+              </article>
+            )}
           </div>
         </section>
 

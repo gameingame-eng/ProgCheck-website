@@ -382,6 +382,18 @@
   border-radius: 20px;
 }
 
+.dashboard-select-card {
+  width: 100%;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dashboard-select-card-active {
+  outline: 2px solid rgba(216, 93, 47, 0.28);
+}
+
 .dashboard-admin-form {
   display: grid;
   gap: 14px;

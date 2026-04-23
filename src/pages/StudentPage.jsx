@@ -38,12 +38,12 @@ function StudentPage({ assignedTeacher, onLogout, schedules, username }) {
               {assignedTeacher ? (
                 <article className="dashboard-item warm">
                   <h3>{assignedTeacher.username}</h3>
-                  <p>Currently assigned teacher</p>
+                  <p>Teacher from your latest schedule</p>
                 </article>
               ) : (
                 <article className="dashboard-item plain">
                   <h3>No teacher assigned yet</h3>
-                  <p>A teacher can claim you from their dashboard.</p>
+                  <p>An admin can add a teacher when they create your schedule.</p>
                 </article>
               )}
             </div>

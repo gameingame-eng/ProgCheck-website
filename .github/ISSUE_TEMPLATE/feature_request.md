@@ -1,9 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
+title: "[FEAT] New feature: [FEATURE_NAME]"
+labels: enhancement
+assignees: gameingame-eng
 
 ---
 

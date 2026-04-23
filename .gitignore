@@ -14,7 +14,7 @@ dist-ssr
 .env
 # Vite cache
 .vite/
-
+supabase/.temp
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

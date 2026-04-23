@@ -1,16 +1,19 @@
-const dashboardStats = [
-  { value: '24', label: 'submissions to review' },
-  { value: '3', label: 'classes active today' },
-  { value: '7', label: 'draft comments saved' },
-]
+function DashboardPage({
+  assignedStudents,
+  assignmentError,
+  assignmentFeedback,
+  assignmentLoading,
+  availableStudents,
+  onAssignStudent,
+  onLogout,
+  username,
+}) {
+  const dashboardStats = [
+    { value: String(assignedStudents.length), label: 'students assigned' },
+    { value: String(availableStudents.length), label: 'students available' },
+    { value: assignedStudents.length > 0 ? 'Ready' : 'Empty', label: 'teacher queue' },
+  ]
 
-const dashboardSections = [
-  { title: 'Biology Lab Reports', meta: '12 waiting', tone: 'warm' },
-  { title: 'Algebra Exit Tickets', meta: '8 ready to publish', tone: 'cool' },
-  { title: 'English Revisions', meta: '4 need follow-up', tone: 'plain' },
-]
-
-function DashboardPage({ onLogout, username }) {
   return (
     <main className="dashboard-page">
       <section className="dashboard-shell">
@@ -32,7 +35,7 @@ function DashboardPage({ onLogout, username }) {
 
         <section className="dashboard-grid" aria-label="Dashboard overview">
           <div className="dashboard-panel">
-            <h2>Today</h2>
+            <h2>Your roster</h2>
             <div className="stat-row">
               {dashboardStats.map((stat) => (
                 <div className="stat-card" key={stat.label}>
@@ -44,23 +47,53 @@ function DashboardPage({ onLogout, username }) {
           </div>
 
           <div className="dashboard-panel">
-            <h2>Recent work</h2>
+            <h2>Assigned students</h2>
             <div className="dashboard-list">
-              {dashboardSections.map((section) => (
-                <article className={`dashboard-item ${section.tone}`} key={section.title}>
-                  <h3>{section.title}</h3>
-                  <p>{section.meta}</p>
+              {assignedStudents.length > 0 ? assignedStudents.map((student) => (
+                <article className="dashboard-item warm" key={student.id}>
+                  <h3>{student.username}</h3>
+                  <p>Assigned to you</p>
                 </article>
-              ))}
+              )) : (
+                <article className="dashboard-item plain">
+                  <h3>No students yet</h3>
+                  <p>Pick from the unassigned list below to build your roster.</p>
+                </article>
+              )}
             </div>
           </div>
         </section>
 
         <section className="dashboard-panel dashboard-panel-compact">
-          <h2>Quick note</h2>
+          <h2>Unassigned students</h2>
           <p className="dashboard-text">
-            This is the separate logged-in page, while the homepage stays public.
+            Teachers can self-assign students here. Each student can only belong to one teacher at a time.
           </p>
+          <div className="dashboard-list">
+            {availableStudents.length > 0 ? availableStudents.map((student) => (
+              <article className="dashboard-item plain dashboard-action-row" key={student.id}>
+                <div>
+                  <h3>{student.username}</h3>
+                  <p>Available to claim</p>
+                </div>
+                <button
+                  className="primary-button button-reset"
+                  type="button"
+                  onClick={() => onAssignStudent(student.id)}
+                  disabled={assignmentLoading}
+                >
+                  Assign to me
+                </button>
+              </article>
+            )) : (
+              <article className="dashboard-item cool">
+                <h3>All students are assigned</h3>
+                <p>No open students are waiting right now.</p>
+              </article>
+            )}
+          </div>
+          {assignmentError ? <p className="form-message error-message">{assignmentError}</p> : null}
+          {assignmentFeedback ? <p className="form-message success-message">{assignmentFeedback}</p> : null}
         </section>
       </section>
     </main>

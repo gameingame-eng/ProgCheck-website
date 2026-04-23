@@ -382,6 +382,13 @@
   border-radius: 20px;
 }
 
+.dashboard-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .dashboard-item.warm {
   background: linear-gradient(135deg, rgba(255, 214, 178, 0.7), rgba(255, 247, 238, 0.9));
 }
@@ -459,6 +466,13 @@
   opacity: 0.72;
 }
 
+.primary-button:disabled,
+.secondary-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
 .form-message {
   margin: 16px 0 0;
   padding: 14px 16px;
@@ -511,5 +525,10 @@
 
   .workflow-item {
     grid-template-columns: 56px 1fr;
+  }
+
+  .dashboard-action-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

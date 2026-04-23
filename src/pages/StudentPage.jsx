@@ -1,4 +1,4 @@
-function StudentPage({ onLogout, username }) {
+function StudentPage({ assignedTeacher, onLogout, username }) {
   return (
     <main className="dashboard-page">
       <section className="dashboard-shell">
@@ -20,16 +20,19 @@ function StudentPage({ onLogout, username }) {
 
         <section className="dashboard-grid" aria-label="Student overview">
           <div className="dashboard-panel">
-            <h2>Upcoming</h2>
+            <h2>Your teacher</h2>
             <div className="dashboard-list">
-              <article className="dashboard-item plain">
-                <h3>Essay Revision</h3>
-                <p>Due tomorrow</p>
-              </article>
-              <article className="dashboard-item plain">
-                <h3>Biology Reflection</h3>
-                <p>Feedback available</p>
-              </article>
+              {assignedTeacher ? (
+                <article className="dashboard-item warm">
+                  <h3>{assignedTeacher.username}</h3>
+                  <p>Currently assigned teacher</p>
+                </article>
+              ) : (
+                <article className="dashboard-item plain">
+                  <h3>No teacher assigned yet</h3>
+                  <p>A teacher can claim you from their dashboard.</p>
+                </article>
+              )}
             </div>
           </div>
 
@@ -37,16 +40,16 @@ function StudentPage({ onLogout, username }) {
             <h2>Status</h2>
             <div className="stat-row">
               <div className="stat-card">
-                <strong>2</strong>
-                <span>assignments due soon</span>
+                <strong>{assignedTeacher ? '1' : '0'}</strong>
+                <span>teacher assigned</span>
               </div>
               <div className="stat-card">
-                <strong>5</strong>
-                <span>graded items</span>
+                <strong>{assignedTeacher ? assignedTeacher.username.slice(0, 1).toUpperCase() : '-'}</strong>
+                <span>teacher initial</span>
               </div>
               <div className="stat-card">
-                <strong>1</strong>
-                <span>new comment</span>
+                <strong>{assignedTeacher ? 'Linked' : 'Waiting'}</strong>
+                <span>assignment status</span>
               </div>
             </div>
           </div>

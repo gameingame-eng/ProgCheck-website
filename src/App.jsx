@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { hasSupabaseEnv, supabase } from './supabase'
+import AdminPage from './pages/AdminPage'
 import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
@@ -14,11 +15,22 @@ function App() {
   const [userId, setUserId] = useState('')
   const [authReady, setAuthReady] = useState(false)
   const [teacherStudents, setTeacherStudents] = useState([])
-  const [availableStudents, setAvailableStudents] = useState([])
   const [assignedTeacher, setAssignedTeacher] = useState(null)
+  const [studentSchedules, setStudentSchedules] = useState([])
+  const [teachers, setTeachers] = useState([])
+  const [students, setStudents] = useState([])
+  const [assignments, setAssignments] = useState([])
   const [assignmentFeedback, setAssignmentFeedback] = useState('')
   const [assignmentError, setAssignmentError] = useState('')
   const [assignmentLoading, setAssignmentLoading] = useState(false)
+  const [scheduleForm, setScheduleForm] = useState({
+    studentId: '',
+    title: '',
+    details: '',
+    scheduledFor: '',
+    startTime: '',
+    endTime: '',
+  })
 
   useEffect(() => {
     function handlePopState() {
@@ -43,8 +55,11 @@ function App() {
         setUsername('')
         setUserId('')
         setTeacherStudents([])
-        setAvailableStudents([])
         setAssignedTeacher(null)
+        setStudentSchedules([])
+        setTeachers([])
+        setStudents([])
+        setAssignments([])
         setAuthReady(true)
         return
       }
@@ -71,6 +86,12 @@ function App() {
       setUserRole(null)
       setUsername('')
       setUserId('')
+      setTeacherStudents([])
+      setAssignedTeacher(null)
+      setStudentSchedules([])
+      setTeachers([])
+      setStudents([])
+      setAssignments([])
       setAuthReady(true)
       return undefined
     }
@@ -99,17 +120,40 @@ function App() {
     let isMounted = true
 
     async function loadTeacherData() {
-      const [{ data: students = [] }, { data: assignments = [] }] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('id, username')
-          .eq('role', 'student')
-          .order('username'),
+      const { data: teacherAssignments = [] } = await supabase
+        .from('teacher_student_assignments')
+        .select(`
+          teacher_id,
+          student_id,
+          student:profiles!teacher_student_assignments_student_id_fkey(username)
+        `)
+        .eq('teacher_id', userId)
+
+      if (!isMounted) {
+        return
+      }
+
+      const mine = teacherAssignments.map((assignment) => ({
+        id: assignment.student_id,
+        username: assignment.student?.username ?? 'Unnamed student',
+      }))
+
+      setTeacherStudents(mine)
+      setAssignments([])
+      setTeachers([])
+      setStudents([])
+    }
+
+    async function loadAdminData() {
+      const [{ data: teacherProfiles = [] }, { data: studentProfiles = [] }, { data: assignmentRows = [] }] = await Promise.all([
+        supabase.from('profiles').select('id, username').eq('role', 'teacher').order('username'),
+        supabase.from('profiles').select('id, username').eq('role', 'student').order('username'),
         supabase
           .from('teacher_student_assignments')
           .select(`
             teacher_id,
             student_id,
+            teacher:profiles!teacher_student_assignments_teacher_id_fkey(username),
             student:profiles!teacher_student_assignments_student_id_fkey(username)
           `),
       ])
@@ -118,28 +162,36 @@ function App() {
         return
       }
 
-      const assignedStudentIds = new Set(assignments.map((assignment) => assignment.student_id))
-      const mine = assignments
-        .filter((assignment) => assignment.teacher_id === userId)
-        .map((assignment) => ({
-          id: assignment.student_id,
-          username: assignment.student?.username ?? 'Unnamed student',
-        }))
-      const openStudents = students.filter((student) => !assignedStudentIds.has(student.id))
-
-      setTeacherStudents(mine)
-      setAvailableStudents(openStudents)
+      setTeachers(teacherProfiles)
+      setStudents(studentProfiles)
+      setAssignments(
+        assignmentRows.map((assignment) => ({
+          teacherId: assignment.teacher_id,
+          teacherName: assignment.teacher?.username ?? 'Unknown teacher',
+          studentId: assignment.student_id,
+          studentName: assignment.student?.username ?? 'Unknown student',
+        })),
+      )
+      setTeacherStudents([])
+      setAssignedTeacher(null)
     }
 
     async function loadStudentData() {
-      const { data: assignment } = await supabase
-        .from('teacher_student_assignments')
-        .select(`
-          teacher_id,
-          teacher:profiles!teacher_student_assignments_teacher_id_fkey(username)
-        `)
-        .eq('student_id', userId)
-        .maybeSingle()
+      const [{ data: assignment }, { data: schedules = [] }] = await Promise.all([
+        supabase
+          .from('teacher_student_assignments')
+          .select(`
+            teacher_id,
+            teacher:profiles!teacher_student_assignments_teacher_id_fkey(username)
+          `)
+          .eq('student_id', userId)
+          .maybeSingle(),
+        supabase
+          .from('student_schedules')
+          .select('id, title, details, scheduled_for, start_time, end_time')
+          .eq('student_id', userId)
+          .order('created_at', { ascending: false }),
+      ])
 
       if (!isMounted) {
         return
@@ -153,10 +205,20 @@ function App() {
             }
           : null,
       )
+      setStudentSchedules(schedules)
+      setTeachers([])
+      setStudents([])
+      setAssignments([])
     }
 
     setAssignmentFeedback('')
     setAssignmentError('')
+
+    if (userRole === 'admin') {
+      setTeacherStudents([])
+      setAssignedTeacher(null)
+      loadAdminData()
+    }
 
     if (userRole === 'teacher') {
       setAssignedTeacher(null)
@@ -165,7 +227,6 @@ function App() {
 
     if (userRole === 'student') {
       setTeacherStudents([])
-      setAvailableStudents([])
       loadStudentData()
     }
 
@@ -189,6 +250,11 @@ function App() {
       setPath('/student')
     }
 
+    if (path === '/dashboard' && isAuthenticated && userRole === 'admin') {
+      window.history.replaceState({}, '', '/admin')
+      setPath('/admin')
+    }
+
     if (path === '/student' && !isAuthenticated) {
       window.history.replaceState({}, '', '/login')
       setPath('/login')
@@ -197,6 +263,26 @@ function App() {
     if (path === '/student' && isAuthenticated && userRole === 'teacher') {
       window.history.replaceState({}, '', '/dashboard')
       setPath('/dashboard')
+    }
+
+    if (path === '/student' && isAuthenticated && userRole === 'admin') {
+      window.history.replaceState({}, '', '/admin')
+      setPath('/admin')
+    }
+
+    if (path === '/admin' && !isAuthenticated) {
+      window.history.replaceState({}, '', '/login')
+      setPath('/login')
+    }
+
+    if (path === '/admin' && isAuthenticated && userRole === 'teacher') {
+      window.history.replaceState({}, '', '/dashboard')
+      setPath('/dashboard')
+    }
+
+    if (path === '/admin' && isAuthenticated && userRole === 'student') {
+      window.history.replaceState({}, '', '/student')
+      setPath('/student')
     }
   }, [authReady, isAuthenticated, path, userRole])
 
@@ -214,7 +300,7 @@ function App() {
     setPath('/login')
   }
 
-  async function handleAssignStudent(studentId) {
+  async function handleAdminAssignStudent(studentId, teacherId) {
     if (!supabase || !userId) {
       return
     }
@@ -225,11 +311,11 @@ function App() {
 
     const { error } = await supabase
       .from('teacher_student_assignments')
-      .insert({
-        teacher_id: userId,
+      .upsert({
+        teacher_id: teacherId,
         student_id: studentId,
         assigned_by: userId,
-      })
+      }, { onConflict: 'student_id' })
 
     if (error) {
       setAssignmentLoading(false)
@@ -237,14 +323,74 @@ function App() {
       return
     }
 
-    const nextStudent = availableStudents.find((student) => student.id === studentId)
+    const teacher = teachers.find((item) => item.id === teacherId)
+    const student = students.find((item) => item.id === studentId)
 
-    setTeacherStudents((current) =>
-      nextStudent ? [...current, nextStudent].sort((a, b) => a.username.localeCompare(b.username)) : current,
-    )
-    setAvailableStudents((current) => current.filter((student) => student.id !== studentId))
+    setAssignments((current) => {
+      const filtered = current.filter((item) => item.studentId !== studentId)
+      if (!teacher || !student) {
+        return filtered
+      }
+
+      return [...filtered, {
+        teacherId,
+        teacherName: teacher.username,
+        studentId,
+        studentName: student.username,
+      }].sort((a, b) => a.studentName.localeCompare(b.studentName))
+    })
     setAssignmentLoading(false)
-    setAssignmentFeedback('Student assigned successfully.')
+    setAssignmentFeedback('Teacher assignment saved.')
+  }
+
+  async function handleCreateSchedule() {
+    if (!supabase || !userId || !scheduleForm.studentId || !scheduleForm.title.trim()) {
+      setAssignmentError('Choose a student and add a schedule title.')
+      return
+    }
+
+    if ((scheduleForm.startTime && !scheduleForm.endTime) || (!scheduleForm.startTime && scheduleForm.endTime)) {
+      setAssignmentError('Choose both a start time and end time.')
+      return
+    }
+
+    if (scheduleForm.startTime && scheduleForm.endTime && scheduleForm.startTime >= scheduleForm.endTime) {
+      setAssignmentError('End time must be later than start time.')
+      return
+    }
+
+    setAssignmentLoading(true)
+    setAssignmentFeedback('')
+    setAssignmentError('')
+
+    const { error } = await supabase
+      .from('student_schedules')
+      .insert({
+        student_id: scheduleForm.studentId,
+        created_by: userId,
+        title: scheduleForm.title.trim(),
+        details: scheduleForm.details.trim(),
+        scheduled_for: scheduleForm.scheduledFor || null,
+        start_time: scheduleForm.startTime || null,
+        end_time: scheduleForm.endTime || null,
+      })
+
+    setAssignmentLoading(false)
+
+    if (error) {
+      setAssignmentError(error.message)
+      return
+    }
+
+    setScheduleForm({
+      studentId: '',
+      title: '',
+      details: '',
+      scheduledFor: '',
+      startTime: '',
+      endTime: '',
+    })
+    setAssignmentFeedback('Schedule created successfully.')
   }
 
   if (path === '/login') {
@@ -259,11 +405,6 @@ function App() {
     return (
       <DashboardPage
         assignedStudents={teacherStudents}
-        assignmentError={assignmentError}
-        assignmentFeedback={assignmentFeedback}
-        assignmentLoading={assignmentLoading}
-        availableStudents={availableStudents}
-        onAssignStudent={handleAssignStudent}
         onLogout={handleLogout}
         username={username}
       />
@@ -275,7 +416,37 @@ function App() {
       return null
     }
 
-    return <StudentPage assignedTeacher={assignedTeacher} onLogout={handleLogout} username={username} />
+    return (
+      <StudentPage
+        assignedTeacher={assignedTeacher}
+        onLogout={handleLogout}
+        schedules={studentSchedules}
+        username={username}
+      />
+    )
+  }
+
+  if (path === '/admin') {
+    if (!authReady) {
+      return null
+    }
+
+    return (
+      <AdminPage
+        assignmentError={assignmentError}
+        assignmentFeedback={assignmentFeedback}
+        assignmentLoading={assignmentLoading}
+        assignments={assignments}
+        onAssignStudent={handleAdminAssignStudent}
+        onCreateSchedule={handleCreateSchedule}
+        onLogout={handleLogout}
+        onScheduleFormChange={setScheduleForm}
+        scheduleForm={scheduleForm}
+        students={students}
+        teachers={teachers}
+        username={username}
+      />
+    )
   }
 
   return <HomePage onNavigate={navigate} />

@@ -1,16 +1,11 @@
 function DashboardPage({
   assignedStudents,
-  assignmentError,
-  assignmentFeedback,
-  assignmentLoading,
-  availableStudents,
-  onAssignStudent,
   onLogout,
   username,
 }) {
   const dashboardStats = [
     { value: String(assignedStudents.length), label: 'students assigned' },
-    { value: String(availableStudents.length), label: 'students available' },
+    { value: assignedStudents.length > 0 ? 'Linked' : 'Open', label: 'roster status' },
     { value: assignedStudents.length > 0 ? 'Ready' : 'Empty', label: 'teacher queue' },
   ]
 
@@ -65,35 +60,16 @@ function DashboardPage({
         </section>
 
         <section className="dashboard-panel dashboard-panel-compact">
-          <h2>Unassigned students</h2>
+          <h2>Assignment flow</h2>
           <p className="dashboard-text">
-            Teachers can self-assign students here. Each student can only belong to one teacher at a time.
+            Student assignments are handled by admins. Your roster updates automatically when an admin links a student to you.
           </p>
           <div className="dashboard-list">
-            {availableStudents.length > 0 ? availableStudents.map((student) => (
-              <article className="dashboard-item plain dashboard-action-row" key={student.id}>
-                <div>
-                  <h3>{student.username}</h3>
-                  <p>Available to claim</p>
-                </div>
-                <button
-                  className="primary-button button-reset"
-                  type="button"
-                  onClick={() => onAssignStudent(student.id)}
-                  disabled={assignmentLoading}
-                >
-                  Assign to me
-                </button>
-              </article>
-            )) : (
-              <article className="dashboard-item cool">
-                <h3>All students are assigned</h3>
-                <p>No open students are waiting right now.</p>
-              </article>
-            )}
+            <article className="dashboard-item plain">
+              <h3>Admin-managed roster</h3>
+              <p>Reach out to an admin if a student needs to be reassigned or added to your list.</p>
+            </article>
           </div>
-          {assignmentError ? <p className="form-message error-message">{assignmentError}</p> : null}
-          {assignmentFeedback ? <p className="form-message success-message">{assignmentFeedback}</p> : null}
         </section>
       </section>
     </main>

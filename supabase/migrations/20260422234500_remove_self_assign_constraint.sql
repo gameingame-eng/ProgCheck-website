@@ -1,0 +1,2 @@
+alter table public.teacher_student_assignments
+drop constraint if exists teacher_student_assignments_teacher_is_teacher;

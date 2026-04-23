@@ -51,7 +51,8 @@ function LoginPage({ onNavigate }) {
       .maybeSingle()
 
     setMessage('Logged in successfully.')
-    const nextPath = signedInProfile?.role?.toLowerCase() === 'teacher' ? '/dashboard' : '/student'
+    const role = signedInProfile?.role?.toLowerCase()
+    const nextPath = role === 'admin' ? '/admin' : role === 'teacher' ? '/dashboard' : '/student'
     window.setTimeout(() => onNavigate(nextPath), 400)
   }
 

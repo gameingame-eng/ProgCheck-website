@@ -6,4 +6,3 @@
 *.jpeg binary
 *.gif binary
 *.ico binary
-* text linguist-detectable=true

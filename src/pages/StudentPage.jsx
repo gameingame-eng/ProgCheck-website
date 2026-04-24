@@ -1,4 +1,4 @@
-function StudentPage({ assignedTeacher, onLogout, schedules, username }) {
+function StudentPage({ assignedTeacher, homeworkAssignments, onLogout, schedules, username }) {
   function formatTime(time) {
     if (!time || typeof time !== 'string') {
       return null
@@ -44,6 +44,25 @@ function StudentPage({ assignedTeacher, onLogout, schedules, username }) {
                 <article className="dashboard-item plain">
                   <h3>No teacher assigned yet</h3>
                   <p>An admin can add a teacher when they create your schedule.</p>
+                </article>
+              )}
+            </div>
+          </div>
+
+          <div className="dashboard-panel">
+            <h2>Homework</h2>
+            <div className="dashboard-list">
+              {homeworkAssignments.length > 0 ? homeworkAssignments.map((assignment) => (
+                <article className="dashboard-item warm" key={assignment.id}>
+                  <h3>{assignment.title}</h3>
+                  <p>{assignment.teacherName}</p>
+                  <p>{assignment.dueDate ? `Due: ${assignment.dueDate}` : 'No due date set'}</p>
+                  {assignment.details ? <p>{assignment.details}</p> : null}
+                </article>
+              )) : (
+                <article className="dashboard-item plain">
+                  <h3>No homework yet</h3>
+                  <p>Your teacher will be able to post homework here.</p>
                 </article>
               )}
             </div>

@@ -83,6 +83,10 @@
   color: var(--muted);
 }
 
+.dashboard-item p + p {
+  margin-top: 6px;
+}
+
 .hero-text {
   max-width: 33rem;
   margin-top: 18px;

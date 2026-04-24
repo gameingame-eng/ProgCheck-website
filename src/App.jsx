@@ -20,6 +20,9 @@ function App() {
   const [studentSchedules, setStudentSchedules] = useState([])
   const [teachers, setTeachers] = useState([])
   const [students, setStudents] = useState([])
+  const [studentAssignments, setStudentAssignments] = useState([])
+  const [teacherHomework, setTeacherHomework] = useState([])
+  const [studentHomework, setStudentHomework] = useState([])
   const [assignmentFeedback, setAssignmentFeedback] = useState('')
   const [assignmentError, setAssignmentError] = useState('')
   const [assignmentLoading, setAssignmentLoading] = useState(false)
@@ -32,6 +35,12 @@ function App() {
     scheduledFor: '',
     startTime: '',
     endTime: '',
+  })
+  const [homeworkForm, setHomeworkForm] = useState({
+    studentId: '',
+    title: '',
+    details: '',
+    dueDate: '',
   })
 
   useEffect(() => {
@@ -62,6 +71,9 @@ function App() {
         setStudentSchedules([])
         setTeachers([])
         setStudents([])
+        setStudentAssignments([])
+        setTeacherHomework([])
+        setStudentHomework([])
         setAdminSchedules([])
         setAuthReady(true)
         return
@@ -95,6 +107,9 @@ function App() {
       setStudentSchedules([])
       setTeachers([])
       setStudents([])
+      setStudentAssignments([])
+      setTeacherHomework([])
+      setStudentHomework([])
       setAdminSchedules([])
       setAuthReady(true)
       return undefined
@@ -124,38 +139,57 @@ function App() {
     let isMounted = true
 
     async function loadTeacherData() {
-      const { data: teacherSchedules = [] } = await supabase
-        .from('student_schedules')
-        .select(`
-          id,
-          title,
-          details,
-          scheduled_for,
-          start_time,
-          end_time,
-          teacher_id,
-          student_id,
-          student:profiles!student_schedules_student_id_fkey(username)
-        `)
-        .eq('teacher_id', userId)
-        .order('scheduled_for', { ascending: true })
-        .order('start_time', { ascending: true })
+      const [{ data: teacherSchedules = [] }, { data: assignedStudents = [] }, { data: homeworkRows = [] }] = await Promise.all([
+        supabase
+          .from('student_schedules')
+          .select(`
+            id,
+            title,
+            details,
+            scheduled_for,
+            start_time,
+            end_time,
+            teacher_id,
+            student_id,
+            student:profiles!student_schedules_student_id_fkey(username)
+          `)
+          .eq('teacher_id', userId)
+          .order('scheduled_for', { ascending: true })
+          .order('start_time', { ascending: true }),
+        supabase
+          .from('teacher_student_assignments')
+          .select(`
+            student_id,
+            student:profiles!teacher_student_assignments_student_id_fkey(username)
+          `)
+          .eq('teacher_id', userId),
+        supabase
+          .from('teacher_homework_assignments')
+          .select(`
+            id,
+            student_id,
+            title,
+            details,
+            due_date,
+            created_at,
+            student:profiles!teacher_homework_assignments_student_id_fkey(username)
+          `)
+          .eq('teacher_id', userId)
+          .order('created_at', { ascending: false }),
+      ])
 
       if (!isMounted) {
         return
       }
 
-      const uniqueStudents = new Map()
-      teacherSchedules.forEach((schedule) => {
-        if (!uniqueStudents.has(schedule.student_id)) {
-          uniqueStudents.set(schedule.student_id, {
-            id: schedule.student_id,
-            username: schedule.student?.username ?? 'Unnamed student',
-          })
-        }
-      })
-
-      setTeacherStudents(Array.from(uniqueStudents.values()).sort((a, b) => a.username.localeCompare(b.username)))
+      setTeacherStudents(
+        assignedStudents
+          .map((assignment) => ({
+            id: assignment.student_id,
+            username: assignment.student?.username ?? 'Unnamed student',
+          }))
+          .sort((a, b) => a.username.localeCompare(b.username)),
+      )
       setTeacherSchedules(
         teacherSchedules.map((schedule) => ({
           id: schedule.id,
@@ -167,15 +201,41 @@ function App() {
           studentName: schedule.student?.username ?? 'Unnamed student',
         })),
       )
+      setTeacherHomework(
+        homeworkRows.map((assignment) => ({
+          id: assignment.id,
+          studentId: assignment.student_id,
+          studentName: assignment.student?.username ?? 'Unnamed student',
+          title: assignment.title,
+          details: assignment.details,
+          dueDate: assignment.due_date,
+          createdAt: assignment.created_at,
+        })),
+      )
       setTeachers([])
       setStudents([])
+      setStudentAssignments([])
+      setStudentHomework([])
       setAdminSchedules([])
     }
 
     async function loadAdminData() {
-      const [{ data: teacherProfiles = [] }, { data: studentProfiles = [] }, { data: scheduleRows = [] }] = await Promise.all([
+      const [
+        { data: teacherProfiles = [] },
+        { data: studentProfiles = [] },
+        { data: assignmentRows = [] },
+        { data: scheduleRows = [] },
+      ] = await Promise.all([
         supabase.from('profiles').select('id, username').eq('role', 'teacher').order('username'),
         supabase.from('profiles').select('id, username').eq('role', 'student').order('username'),
+        supabase
+          .from('teacher_student_assignments')
+          .select(`
+            teacher_id,
+            student_id,
+            teacher:profiles!teacher_student_assignments_teacher_id_fkey(username),
+            student:profiles!teacher_student_assignments_student_id_fkey(username)
+          `),
         supabase
           .from('student_schedules')
           .select(`
@@ -198,7 +258,23 @@ function App() {
       }
 
       setTeachers(teacherProfiles)
-      setStudents(studentProfiles)
+      setStudentAssignments(
+        assignmentRows.map((assignment) => ({
+          teacherId: assignment.teacher_id,
+          teacherName: assignment.teacher?.username ?? 'Unknown teacher',
+          studentId: assignment.student_id,
+          studentName: assignment.student?.username ?? 'Unknown student',
+        })),
+      )
+      const assignedTeacherByStudentId = new Map(
+        assignmentRows.map((assignment) => [assignment.student_id, assignment.teacher?.username ?? 'Unknown teacher']),
+      )
+      setStudents(
+        studentProfiles.map((student) => ({
+          ...student,
+          assignedTeacherName: assignedTeacherByStudentId.get(student.id) ?? null,
+        })),
+      )
       setAdminSchedules(
         scheduleRows.map((schedule) => ({
           id: schedule.id,
@@ -216,41 +292,77 @@ function App() {
       setTeacherStudents([])
       setTeacherSchedules([])
       setAssignedTeacher(null)
+      setTeacherHomework([])
+      setStudentHomework([])
     }
 
     async function loadStudentData() {
-      const { data: schedules = [] } = await supabase
-        .from('student_schedules')
-        .select(`
-          id,
-          title,
-          details,
-          scheduled_for,
-          start_time,
-          end_time,
-          teacher_id,
-          teacher:profiles!student_schedules_teacher_id_fkey(username)
-        `)
-        .eq('student_id', userId)
-        .order('created_at', { ascending: false })
+      const [{ data: schedules = [] }, { data: assignment }, { data: homeworkRows = [] }] = await Promise.all([
+        supabase
+          .from('student_schedules')
+          .select(`
+            id,
+            title,
+            details,
+            scheduled_for,
+            start_time,
+            end_time,
+            teacher_id,
+            teacher:profiles!student_schedules_teacher_id_fkey(username)
+          `)
+          .eq('student_id', userId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('teacher_student_assignments')
+          .select(`
+            teacher_id,
+            teacher:profiles!teacher_student_assignments_teacher_id_fkey(username)
+          `)
+          .eq('student_id', userId)
+          .maybeSingle(),
+        supabase
+          .from('teacher_homework_assignments')
+          .select(`
+            id,
+            title,
+            details,
+            due_date,
+            created_at,
+            teacher_id,
+            teacher:profiles!teacher_homework_assignments_teacher_id_fkey(username)
+          `)
+          .eq('student_id', userId)
+          .order('created_at', { ascending: false }),
+      ])
 
       if (!isMounted) {
         return
       }
 
-      const latestTeacher = schedules.find((schedule) => schedule.teacher_id)
       setAssignedTeacher(
-        latestTeacher
+        assignment?.teacher_id
           ? {
-              id: latestTeacher.teacher_id,
-              username: latestTeacher.teacher?.username ?? 'Assigned teacher',
+              id: assignment.teacher_id,
+              username: assignment.teacher?.username ?? 'Assigned teacher',
             }
           : null,
       )
       setStudentSchedules(schedules)
+      setStudentHomework(
+        homeworkRows.map((assignmentRow) => ({
+          id: assignmentRow.id,
+          title: assignmentRow.title,
+          details: assignmentRow.details,
+          dueDate: assignmentRow.due_date,
+          createdAt: assignmentRow.created_at,
+          teacherName: assignmentRow.teacher?.username ?? 'Assigned teacher',
+        })),
+      )
       setTeacherSchedules([])
       setTeachers([])
       setStudents([])
+      setStudentAssignments([])
+      setTeacherHomework([])
       setAdminSchedules([])
     }
 
@@ -418,6 +530,113 @@ function App() {
     setAssignmentFeedback('Schedule created successfully.')
   }
 
+  async function handleAssignTeacher() {
+    if (!supabase || !userId || !scheduleForm.studentId || !scheduleForm.teacherId) {
+      setAssignmentError('Choose both a student and teacher to save the class assignment.')
+      return
+    }
+
+    setAssignmentLoading(true)
+    setAssignmentFeedback('')
+    setAssignmentError('')
+
+    const { error } = await supabase
+      .from('teacher_student_assignments')
+      .upsert(
+        {
+          student_id: scheduleForm.studentId,
+          teacher_id: scheduleForm.teacherId,
+          assigned_by: userId,
+        },
+        { onConflict: 'student_id' },
+      )
+
+    setAssignmentLoading(false)
+
+    if (error) {
+      setAssignmentError(error.message)
+      return
+    }
+
+    const teacher = teachers.find((item) => item.id === scheduleForm.teacherId)
+    setStudents((current) =>
+      current.map((student) =>
+        student.id === scheduleForm.studentId
+          ? { ...student, assignedTeacherName: teacher?.username ?? 'Assigned teacher' }
+          : student,
+      ),
+    )
+    setStudentAssignments((current) => {
+      const nextAssignment = {
+        teacherId: scheduleForm.teacherId,
+        teacherName: teacher?.username ?? 'Assigned teacher',
+        studentId: scheduleForm.studentId,
+        studentName: students.find((item) => item.id === scheduleForm.studentId)?.username ?? 'Unknown student',
+      }
+      const remaining = current.filter((assignment) => assignment.studentId !== scheduleForm.studentId)
+      return [nextAssignment, ...remaining]
+    })
+    setAssignmentFeedback('Teacher assigned successfully.')
+  }
+
+  async function handleCreateHomework() {
+    if (!supabase || !userId || !homeworkForm.studentId || !homeworkForm.title.trim()) {
+      setAssignmentError('Choose a student and add a homework title.')
+      return
+    }
+
+    setAssignmentLoading(true)
+    setAssignmentFeedback('')
+    setAssignmentError('')
+
+    const { data, error } = await supabase
+      .from('teacher_homework_assignments')
+      .insert({
+        teacher_id: userId,
+        student_id: homeworkForm.studentId,
+        title: homeworkForm.title.trim(),
+        details: homeworkForm.details.trim(),
+        due_date: homeworkForm.dueDate || null,
+      })
+      .select(`
+        id,
+        student_id,
+        title,
+        details,
+        due_date,
+        created_at,
+        student:profiles!teacher_homework_assignments_student_id_fkey(username)
+      `)
+      .single()
+
+    setAssignmentLoading(false)
+
+    if (error) {
+      setAssignmentError(error.message)
+      return
+    }
+
+    setTeacherHomework((current) => [
+      {
+        id: data.id,
+        studentId: data.student_id,
+        studentName: data.student?.username ?? 'Unnamed student',
+        title: data.title,
+        details: data.details,
+        dueDate: data.due_date,
+        createdAt: data.created_at,
+      },
+      ...current,
+    ])
+    setHomeworkForm({
+      studentId: '',
+      title: '',
+      details: '',
+      dueDate: '',
+    })
+    setAssignmentFeedback('Homework assigned successfully.')
+  }
+
   if (path === '/login') {
     return <LoginPage onNavigate={navigate} />
   }
@@ -430,6 +649,13 @@ function App() {
     return (
       <DashboardPage
         assignedStudents={teacherStudents}
+        assignmentError={assignmentError}
+        assignmentFeedback={assignmentFeedback}
+        assignmentLoading={assignmentLoading}
+        homeworkAssignments={teacherHomework}
+        homeworkForm={homeworkForm}
+        onCreateHomework={handleCreateHomework}
+        onHomeworkFormChange={setHomeworkForm}
         onLogout={handleLogout}
         schedules={teacherSchedules}
         username={username}
@@ -445,6 +671,7 @@ function App() {
     return (
       <StudentPage
         assignedTeacher={assignedTeacher}
+        homeworkAssignments={studentHomework}
         onLogout={handleLogout}
         schedules={studentSchedules}
         username={username}
@@ -464,10 +691,12 @@ function App() {
         assignmentLoading={assignmentLoading}
         schedules={adminSchedules}
         onCreateSchedule={handleCreateSchedule}
+        onAssignTeacher={handleAssignTeacher}
         onLogout={handleLogout}
         onScheduleFormChange={setScheduleForm}
         scheduleForm={scheduleForm}
         students={students}
+        studentAssignments={studentAssignments}
         teachers={teachers}
         username={username}
       />

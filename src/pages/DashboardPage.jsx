@@ -1,5 +1,12 @@
 function DashboardPage({
   assignedStudents,
+  assignmentError,
+  assignmentFeedback,
+  assignmentLoading,
+  homeworkAssignments,
+  homeworkForm,
+  onCreateHomework,
+  onHomeworkFormChange,
   onLogout,
   schedules,
   username,
@@ -73,6 +80,94 @@ function DashboardPage({
           </div>
         </section>
 
+        <section className="dashboard-grid" aria-label="Homework tools">
+          <div className="dashboard-panel">
+            <h2>Give homework</h2>
+            <div className="dashboard-form">
+              <label className="field">
+                <span>Student</span>
+                <select
+                  className="dashboard-select"
+                  value={homeworkForm.studentId}
+                  onChange={(event) =>
+                    onHomeworkFormChange((current) => ({ ...current, studentId: event.target.value }))
+                  }
+                >
+                  <option value="">Select student</option>
+                  {assignedStudents.map((student) => (
+                    <option key={student.id} value={student.id}>
+                      {student.username}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="field">
+                <span>Title</span>
+                <input
+                  type="text"
+                  value={homeworkForm.title}
+                  onChange={(event) =>
+                    onHomeworkFormChange((current) => ({ ...current, title: event.target.value }))
+                  }
+                  placeholder="Read chapter 4"
+                />
+              </label>
+
+              <label className="field">
+                <span>Details</span>
+                <textarea
+                  className="dashboard-textarea"
+                  value={homeworkForm.details}
+                  onChange={(event) =>
+                    onHomeworkFormChange((current) => ({ ...current, details: event.target.value }))
+                  }
+                  placeholder="Directions, questions, or links..."
+                />
+              </label>
+
+              <label className="field">
+                <span>Due date</span>
+                <input
+                  type="date"
+                  value={homeworkForm.dueDate}
+                  onChange={(event) =>
+                    onHomeworkFormChange((current) => ({ ...current, dueDate: event.target.value }))
+                  }
+                />
+              </label>
+
+              <button
+                className="primary-button button-reset"
+                type="button"
+                onClick={onCreateHomework}
+                disabled={assignmentLoading}
+              >
+                Assign homework
+              </button>
+            </div>
+          </div>
+
+          <div className="dashboard-panel">
+            <h2>Assigned homework</h2>
+            <div className="dashboard-list">
+              {homeworkAssignments.length > 0 ? homeworkAssignments.map((assignment) => (
+                <article className="dashboard-item cool" key={assignment.id}>
+                  <h3>{assignment.title}</h3>
+                  <p>{assignment.studentName}</p>
+                  <p>{assignment.dueDate ? `Due: ${assignment.dueDate}` : 'No due date set'}</p>
+                  {assignment.details ? <p>{assignment.details}</p> : null}
+                </article>
+              )) : (
+                <article className="dashboard-item plain">
+                  <h3>No homework assigned yet</h3>
+                  <p>Your homework list will appear here after you assign work to a student.</p>
+                </article>
+              )}
+            </div>
+          </div>
+        </section>
+
         <section className="dashboard-panel dashboard-panel-compact">
           <h2>Schedule</h2>
           <div className="dashboard-list">
@@ -94,6 +189,9 @@ function DashboardPage({
             )}
           </div>
         </section>
+
+        {assignmentError ? <p className="form-message error-message">{assignmentError}</p> : null}
+        {assignmentFeedback ? <p className="form-message success-message">{assignmentFeedback}</p> : null}
       </section>
     </main>
   )

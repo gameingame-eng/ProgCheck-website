@@ -6,4 +6,5 @@
 ProgCheck is a place where teachers, students, and admins work to make a schedules, assign things, and is like Skyward. It is incomplete, and I am open to contributions!
 
 ## Contributing
-Check **[CONTRIBUTING.md](docs/CONTRIBUTING.md)**
+Check **[CONTRIBUTING.md](docs/CONTRIBUTING.md)** for contributing info.
+

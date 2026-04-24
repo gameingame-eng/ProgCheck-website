@@ -1,4 +1,17 @@
-function StudentPage({ onLogout, username }) {
+function StudentPage({ assignedTeacher, onLogout, schedules, username }) {
+  function formatTime(time) {
+    if (!time || typeof time !== 'string') {
+      return null
+    }
+
+    const [hourText = '00', minuteText = '00'] = time.split(':')
+    const hour = Number(hourText)
+    const minute = minuteText.padStart(2, '0')
+    const suffix = hour >= 12 ? 'PM' : 'AM'
+    const normalizedHour = hour % 12 || 12
+    return `${normalizedHour}:${minute} ${suffix}`
+  }
+
   return (
     <main className="dashboard-page">
       <section className="dashboard-shell">
@@ -20,34 +33,40 @@ function StudentPage({ onLogout, username }) {
 
         <section className="dashboard-grid" aria-label="Student overview">
           <div className="dashboard-panel">
-            <h2>Upcoming</h2>
+            <h2>Your teacher</h2>
             <div className="dashboard-list">
-              <article className="dashboard-item plain">
-                <h3>Essay Revision</h3>
-                <p>Due tomorrow</p>
-              </article>
-              <article className="dashboard-item plain">
-                <h3>Biology Reflection</h3>
-                <p>Feedback available</p>
-              </article>
+              {assignedTeacher ? (
+                <article className="dashboard-item warm">
+                  <h3>{assignedTeacher.username}</h3>
+                  <p>Teacher from your latest schedule</p>
+                </article>
+              ) : (
+                <article className="dashboard-item plain">
+                  <h3>No teacher assigned yet</h3>
+                  <p>An admin can add a teacher when they create your schedule.</p>
+                </article>
+              )}
             </div>
           </div>
 
           <div className="dashboard-panel">
-            <h2>Status</h2>
-            <div className="stat-row">
-              <div className="stat-card">
-                <strong>2</strong>
-                <span>assignments due soon</span>
-              </div>
-              <div className="stat-card">
-                <strong>5</strong>
-                <span>graded items</span>
-              </div>
-              <div className="stat-card">
-                <strong>1</strong>
-                <span>new comment</span>
-              </div>
+            <h2>Schedule</h2>
+            <div className="dashboard-list">
+              {schedules.length > 0 ? schedules.map((schedule) => (
+                <article className="dashboard-item cool" key={schedule.id}>
+                  <h3>{schedule.title}</h3>
+                  <p>{schedule.scheduled_for ? `Date: ${schedule.scheduled_for}` : 'Date not set'}</p>
+                  {schedule.start_time && schedule.end_time ? (
+                    <p>{`Time: ${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`}</p>
+                  ) : null}
+                  {schedule.details ? <p>{schedule.details}</p> : null}
+                </article>
+              )) : (
+                <article className="dashboard-item plain">
+                  <h3>No schedule yet</h3>
+                  <p>An admin can create your schedule here once it is ready.</p>
+                </article>
+              )}
             </div>
           </div>
         </section>

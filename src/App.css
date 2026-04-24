@@ -382,6 +382,59 @@
   border-radius: 20px;
 }
 
+.dashboard-select-card {
+  width: 100%;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dashboard-select-card-active {
+  outline: 2px solid rgba(216, 93, 47, 0.28);
+}
+
+.dashboard-admin-form {
+  display: grid;
+  gap: 14px;
+}
+
+.dashboard-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.dashboard-time-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dashboard-select,
+.dashboard-textarea {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--heading);
+  font: inherit;
+}
+
+.dashboard-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
 .dashboard-item.warm {
   background: linear-gradient(135deg, rgba(97, 58, 28, 0.9), rgba(42, 28, 19, 0.96));
 }
@@ -463,6 +516,13 @@
   opacity: 0.72;
 }
 
+.primary-button:disabled,
+.secondary-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
 .form-message {
   margin: 16px 0 0;
   padding: 14px 16px;
@@ -515,5 +575,14 @@
 
   .workflow-item {
     grid-template-columns: 56px 1fr;
+  }
+
+  .dashboard-action-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-time-grid {
+    grid-template-columns: 1fr;
   }
 }

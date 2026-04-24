@@ -1,16 +1,28 @@
-const dashboardStats = [
-  { value: '24', label: 'submissions to review' },
-  { value: '3', label: 'classes active today' },
-  { value: '7', label: 'draft comments saved' },
-]
+function DashboardPage({
+  assignedStudents,
+  onLogout,
+  schedules,
+  username,
+}) {
+  function formatTime(time) {
+    if (!time || typeof time !== 'string') {
+      return null
+    }
 
-const dashboardSections = [
-  { title: 'Biology Lab Reports', meta: '12 waiting', tone: 'warm' },
-  { title: 'Algebra Exit Tickets', meta: '8 ready to publish', tone: 'cool' },
-  { title: 'English Revisions', meta: '4 need follow-up', tone: 'plain' },
-]
+    const [hourText = '00', minuteText = '00'] = time.split(':')
+    const hour = Number(hourText)
+    const minute = minuteText.padStart(2, '0')
+    const suffix = hour >= 12 ? 'PM' : 'AM'
+    const normalizedHour = hour % 12 || 12
+    return `${normalizedHour}:${minute} ${suffix}`
+  }
 
-function DashboardPage({ onLogout, username }) {
+  const dashboardStats = [
+    { value: String(assignedStudents.length), label: 'students assigned' },
+    { value: assignedStudents.length > 0 ? 'Linked' : 'Open', label: 'roster status' },
+    { value: String(schedules.length), label: 'schedule entries' },
+  ]
+
   return (
     <main className="dashboard-page">
       <section className="dashboard-shell">
@@ -32,7 +44,7 @@ function DashboardPage({ onLogout, username }) {
 
         <section className="dashboard-grid" aria-label="Dashboard overview">
           <div className="dashboard-panel">
-            <h2>Today</h2>
+            <h2>Your roster</h2>
             <div className="stat-row">
               {dashboardStats.map((stat) => (
                 <div className="stat-card" key={stat.label}>
@@ -44,23 +56,43 @@ function DashboardPage({ onLogout, username }) {
           </div>
 
           <div className="dashboard-panel">
-            <h2>Recent work</h2>
+            <h2>Assigned students</h2>
             <div className="dashboard-list">
-              {dashboardSections.map((section) => (
-                <article className={`dashboard-item ${section.tone}`} key={section.title}>
-                  <h3>{section.title}</h3>
-                  <p>{section.meta}</p>
+              {assignedStudents.length > 0 ? assignedStudents.map((student) => (
+                <article className="dashboard-item warm" key={student.id}>
+                  <h3>{student.username}</h3>
+                  <p>Scheduled with you</p>
                 </article>
-              ))}
+              )) : (
+                <article className="dashboard-item plain">
+                  <h3>No students yet</h3>
+                  <p>Students will appear here once an admin builds schedules with your name on them.</p>
+                </article>
+              )}
             </div>
           </div>
         </section>
 
         <section className="dashboard-panel dashboard-panel-compact">
-          <h2>Quick note</h2>
-          <p className="dashboard-text">
-            This is the separate logged-in page, while the homepage stays public.
-          </p>
+          <h2>Schedule</h2>
+          <div className="dashboard-list">
+            {schedules.length > 0 ? schedules.map((schedule) => (
+              <article className="dashboard-item plain" key={schedule.id}>
+                <h3>{schedule.title}</h3>
+                <p>{schedule.studentName}</p>
+                <p>{schedule.scheduledFor ? `Date: ${schedule.scheduledFor}` : 'Date not set'}</p>
+                {schedule.startTime && schedule.endTime ? (
+                  <p>{`Time: ${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)}`}</p>
+                ) : null}
+                {schedule.details ? <p>{schedule.details}</p> : null}
+              </article>
+            )) : (
+              <article className="dashboard-item plain">
+                <h3>No schedule entries yet</h3>
+                <p>Admins can add students and meeting times to your schedule.</p>
+              </article>
+            )}
+          </div>
         </section>
       </section>
     </main>

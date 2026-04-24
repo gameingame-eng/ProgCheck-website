@@ -127,7 +127,7 @@
 .secondary-button {
   color: var(--heading);
   border: 1px solid var(--line-strong);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(24, 38, 52, 0.88);
 }
 
 .primary-button:hover,
@@ -175,9 +175,9 @@
   position: relative;
   height: 100%;
   border-radius: 28px;
-  border: 1px solid rgba(18, 49, 74, 0.12);
+  border: 1px solid rgba(125, 163, 201, 0.14);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 239, 231, 0.92));
+    linear-gradient(180deg, rgba(12, 22, 33, 0.96), rgba(20, 31, 44, 0.94));
   overflow: hidden;
 }
 
@@ -191,7 +191,7 @@
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: rgba(34, 54, 74, 0.22);
+  background: rgba(150, 182, 214, 0.22);
 }
 
 .panel-content {
@@ -203,12 +203,12 @@
 .assignment-card {
   padding: 20px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(22, 35, 49, 0.9);
 }
 
 .assignment-card.large {
   padding: 24px;
-  background: linear-gradient(180deg, #14324b, #204562);
+  background: linear-gradient(180deg, #10283b, #17344b);
 }
 
 .assignment-card.large h2,
@@ -228,11 +228,11 @@
 }
 
 .assignment-card.accent {
-  background: linear-gradient(135deg, #ffd79c, #fff3df);
+  background: linear-gradient(135deg, rgba(133, 78, 34, 0.92), rgba(74, 48, 25, 0.96));
 }
 
 .assignment-card.soft {
-  background: linear-gradient(135deg, #d9f4ed, #f4fffb);
+  background: linear-gradient(135deg, rgba(20, 74, 72, 0.92), rgba(13, 43, 48, 0.96));
 }
 
 .assignment-card h2 {
@@ -249,7 +249,7 @@
   height: 12px;
   margin: 18px 0 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 
@@ -319,7 +319,7 @@
   border-radius: 18px;
   font-weight: 800;
   color: var(--heading);
-  background: rgba(255, 154, 98, 0.2);
+  background: rgba(255, 143, 98, 0.18);
 }
 
 .dashboard-page,
@@ -383,15 +383,15 @@
 }
 
 .dashboard-item.warm {
-  background: linear-gradient(135deg, rgba(255, 214, 178, 0.7), rgba(255, 247, 238, 0.9));
+  background: linear-gradient(135deg, rgba(97, 58, 28, 0.9), rgba(42, 28, 19, 0.96));
 }
 
 .dashboard-item.cool {
-  background: linear-gradient(135deg, rgba(198, 240, 232, 0.8), rgba(247, 255, 252, 0.92));
+  background: linear-gradient(135deg, rgba(22, 78, 74, 0.9), rgba(14, 39, 43, 0.96));
 }
 
 .dashboard-item.plain {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(24, 38, 52, 0.84);
 }
 
 .login-page {
@@ -440,9 +440,13 @@
   padding: 0 14px;
   border: 1px solid var(--line-strong);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(10, 18, 27, 0.92);
   color: var(--heading);
   font: inherit;
+}
+
+.field input::placeholder {
+  color: rgba(156, 175, 194, 0.72);
 }
 
 .field input:focus {
@@ -466,13 +470,13 @@
 }
 
 .error-message {
-  color: #8b2f1c;
-  background: rgba(238, 108, 61, 0.14);
+  color: #ffb69a;
+  background: rgba(140, 56, 34, 0.28);
 }
 
 .success-message {
-  color: #15584e;
-  background: rgba(86, 184, 176, 0.16);
+  color: #a8ece4;
+  background: rgba(19, 93, 87, 0.3);
 }
 
 @media (max-width: 980px) {

@@ -2,24 +2,25 @@
   font-family: 'Trebuchet MS', 'Avenir Next', Avenir, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #314256;
+  color: #e7eef7;
   background:
-    radial-gradient(circle at top left, rgba(255, 184, 122, 0.42), transparent 28%),
-    radial-gradient(circle at top right, rgba(86, 184, 176, 0.18), transparent 24%),
-    linear-gradient(180deg, #fff8f0 0%, #f7f1e8 100%);
+    radial-gradient(circle at top left, rgba(255, 153, 87, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(86, 184, 176, 0.14), transparent 24%),
+    linear-gradient(180deg, #0a1017 0%, #111a24 52%, #16222d 100%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
 
-  --heading: #162538;
-  --muted: #5b6c7f;
-  --accent: #d85d2f;
-  --line: rgba(23, 42, 62, 0.08);
-  --line-strong: rgba(23, 42, 62, 0.16);
-  --surface: rgba(255, 250, 245, 0.8);
-  --surface-strong: rgba(255, 255, 255, 0.62);
-  --shadow: 0 24px 80px rgba(50, 54, 61, 0.08);
+  --heading: #f4f7fb;
+  --muted: #9cafc2;
+  --accent: #ff8f62;
+  --line: rgba(148, 180, 212, 0.14);
+  --line-strong: rgba(148, 180, 212, 0.26);
+  --surface: rgba(13, 22, 31, 0.84);
+  --surface-strong: rgba(22, 35, 49, 0.9);
+  --shadow: 0 28px 80px rgba(1, 6, 12, 0.42);
 }
 
 * {
@@ -33,6 +34,11 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+  color: var(--heading);
+  background:
+    radial-gradient(circle at top left, rgba(255, 153, 87, 0.16), transparent 24%),
+    radial-gradient(circle at top right, rgba(86, 184, 176, 0.12), transparent 18%),
+    linear-gradient(180deg, #0a1017 0%, #111a24 52%, #16222d 100%);
 }
 
 body::before {
@@ -41,8 +47,8 @@ body::before {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.24) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.24) 1px, transparent 1px);
+    linear-gradient(rgba(186, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(186, 211, 238, 0.07) 1px, transparent 1px);
   background-size: 72px 72px;
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 82%);
 }

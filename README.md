@@ -8,3 +8,5 @@ ProgCheck is a place where teachers, students, and admins work to make a schedul
 ## Contributing
 Check **[CONTRIBUTING.md](docs/CONTRIBUTING.md)** for contributing info.
 
+## Usage
+This is an unfinished project. Usage will be there when it's on relaease 1.0.0.

@@ -4,26 +4,17 @@ function AdminPage({
   assignmentError,
   assignmentFeedback,
   assignmentLoading,
-  onAssignTeacher,
   onCreateSchedule,
   onLogout,
   onScheduleFormChange,
   scheduleForm,
   schedules,
   students,
-  studentAssignments,
   teachers,
   username,
 }) {
   const [selectedStudentId, setSelectedStudentId] = useState('')
   const [selectedTeacherId, setSelectedTeacherId] = useState('')
-
-  const progressTemplates = students.map((student) => ({
-    id: student.id,
-    username: student.username,
-    status: 'Not started',
-    summary: 'Progress reports will appear here once the reporting model is added.',
-  }))
 
   const selectedStudent = students.find((student) => student.id === selectedStudentId) ?? null
   const selectedTeacher = teachers.find((teacher) => teacher.id === selectedTeacherId) ?? null
@@ -47,7 +38,7 @@ function AdminPage({
             <p className="eyebrow">ProgCheck</p>
             {username ? <p className="dashboard-user">{username}</p> : null}
             <h1>Admin</h1>
-            <p className="dashboard-text">Assign students to teachers and create student schedules.</p>
+            <p className="dashboard-text">Create and manage student schedules with assigned teachers.</p>
           </div>
           <button className="secondary-button button-reset" type="button" onClick={onLogout}>
             Log out
@@ -97,56 +88,6 @@ function AdminPage({
         </section>
 
         <section className="dashboard-grid" aria-label="Admin tools">
-          <div className="dashboard-panel">
-            <h2>Assign teacher</h2>
-            <div className="dashboard-form">
-              <label className="field">
-                <span>Student</span>
-                <select
-                  className="dashboard-select"
-                  value={scheduleForm.studentId}
-                  onChange={(event) =>
-                    onScheduleFormChange((current) => ({ ...current, studentId: event.target.value }))
-                  }
-                >
-                  <option value="">Select student</option>
-                  {students.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.username}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="field">
-                <span>Teacher</span>
-                <select
-                  className="dashboard-select"
-                  value={scheduleForm.teacherId}
-                  onChange={(event) =>
-                    onScheduleFormChange((current) => ({ ...current, teacherId: event.target.value }))
-                  }
-                >
-                  <option value="">Select teacher</option>
-                  {teachers.map((teacher) => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.username}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <button
-                className="primary-button button-reset"
-                type="button"
-                onClick={onAssignTeacher}
-                disabled={assignmentLoading}
-              >
-                Save class assignment
-              </button>
-            </div>
-          </div>
-
           <div className="dashboard-panel">
             <h2>Create schedule</h2>
             <div className="dashboard-form">
@@ -258,24 +199,7 @@ function AdminPage({
             </div>
           </div>
 
-          <div className="dashboard-panel">
-            <h2>Class assignments</h2>
-            <div className="dashboard-list">
-              {studentAssignments.length > 0 ? studentAssignments.map((assignment) => (
-                <article className="dashboard-item plain" key={assignment.studentId}>
-                  <h3>{assignment.studentName}</h3>
-                  <p>{assignment.teacherName}</p>
-                  <p>Current teacher assignment</p>
-                </article>
-              )) : progressTemplates.map((report) => (
-                <article className="dashboard-item plain" key={report.id}>
-                  <h3>{report.username}</h3>
-                  <p>{report.status}</p>
-                  <p>{report.summary}</p>
-                </article>
-              ))}
-            </div>
-          </div>
+
         </section>
 
         <section className="dashboard-panel dashboard-panel-compact">
